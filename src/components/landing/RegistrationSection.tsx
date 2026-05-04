@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import SectionReveal from "./SectionReveal";
+import SectionDivider from "./SectionDivider";
 
 interface FormData {
   name: string;
@@ -60,6 +61,31 @@ interface RegistrationSectionProps {
   prefilledData?: Record<string, string> | null;
 }
 
+// Confetti particles data
+const confettiParticles = Array.from({ length: 40 }, (_, i) => ({
+  id: i,
+  x: Math.random() * 100,
+  delay: Math.random() * 0.8,
+  size: Math.random() * 6 + 3,
+  color: [
+    "bg-forest",
+    "bg-gold",
+    "bg-gold-light",
+    "bg-forest-light",
+    "bg-sage",
+    "bg-cream-dark",
+  ][Math.floor(Math.random() * 6)],
+  duration: Math.random() * 1.5 + 1.5,
+  rotation: Math.random() * 360,
+  drift: (Math.random() - 0.5) * 60,
+}));
+
+// Shake animation keyframes
+const shakeAnimation = {
+  x: [0, -8, 8, -6, 6, -3, 3, 0],
+  transition: { duration: 0.5, ease: "easeInOut" },
+};
+
 export default function RegistrationSection({ prefilledData }: RegistrationSectionProps) {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -68,6 +94,8 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
   const [submitError, setSubmitError] = useState("");
   const [prefillNotice, setPrefillNotice] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [isShaking, setIsShaking] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Calculate form progress
   const requiredFields = ["name", "batch", "phone"];
@@ -131,6 +159,13 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
     }
 
     setErrors(newErrors);
+
+    // Trigger shake if there are errors
+    if (Object.keys(newErrors).length > 0) {
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -159,6 +194,9 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
       }
 
       setIsSubmitted(true);
+      setShowConfetti(true);
+      // Stop confetti after a few seconds
+      setTimeout(() => setShowConfetti(false), 4000);
     } catch (err) {
       setSubmitError(
         err instanceof Error ? err.message : "Something went wrong"
@@ -168,13 +206,46 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
     }
   };
 
+  // Input wrapper class for expanding ring effect
+  const inputWrapperClass = () => "relative group/input";
+
   if (isSubmitted) {
     return (
       <section
         id="registration"
-        className="py-24 md:py-32 bg-white relative overflow-hidden"
+        className="py-16 md:py-20 bg-white relative overflow-hidden"
       >
-        <div className="max-w-2xl mx-auto px-6">
+        {/* Confetti particles */}
+        {showConfetti && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
+            {confettiParticles.map((p) => (
+              <motion.div
+                key={p.id}
+                className={`absolute ${p.color} rounded-sm`}
+                style={{
+                  left: `${p.x}%`,
+                  top: "-10px",
+                  width: p.size,
+                  height: p.size,
+                }}
+                initial={{ y: 0, opacity: 1, rotate: p.rotation, x: 0 }}
+                animate={{
+                  y: "110vh",
+                  opacity: [1, 1, 0.6, 0],
+                  rotate: p.rotation + 720,
+                  x: p.drift,
+                }}
+                transition={{
+                  duration: p.duration,
+                  delay: p.delay,
+                  ease: "easeIn",
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        <div className="max-w-2xl mx-auto px-6 relative z-10">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -257,14 +328,14 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
   return (
     <section
       id="registration"
-      className="py-24 md:py-32 bg-gradient-to-b from-cream to-white relative overflow-hidden"
+      className="py-16 md:py-20 bg-gradient-to-b from-cream to-white relative overflow-hidden"
     >
       {/* Decorative */}
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
 
       <div className="max-w-3xl mx-auto px-6 relative z-10">
         {/* Section Header */}
-        <SectionReveal className="text-center mb-12 md:mb-16">
+        <SectionReveal className="text-center mb-10 md:mb-14">
           <div className="inline-flex items-center gap-3 bg-white rounded-full px-5 py-2.5 mb-6 border border-forest/10 shadow-sm">
             <div className="w-10 h-10 rounded-full bg-forest/5 border border-forest/10 p-0.5 flex-shrink-0">
               <img
@@ -295,10 +366,14 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
           </p>
         </SectionReveal>
 
+        {/* Section Divider before form */}
+        <SectionDivider style="line" variant="gold" className="mb-10" />
+
         {/* Registration Form */}
         <SectionReveal delay={0.2}>
-          <form
+          <motion.form
             onSubmit={handleSubmit}
+            animate={isShaking ? shakeAnimation : { x: 0 }}
             className="bg-white rounded-3xl p-8 md:p-10 border border-forest/5 shadow-xl shadow-forest/5"
             noValidate
           >
@@ -308,7 +383,9 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
                 <span className="text-xs font-medium text-muted-foreground">
                   {formProgress === 100 ? "All set! Ready to submit" : formProgress > 50 ? "Almost there!" : "Fill in your details"}
                 </span>
-                <span className="text-xs font-semibold text-forest">{formProgress}%</span>
+                <span className={`text-xs font-semibold ${formProgress === 100 ? "text-green-600" : "text-forest"}`}>
+                  {formProgress}%
+                </span>
               </div>
               <div className="h-1.5 bg-cream rounded-full overflow-hidden">
                 <motion.div
@@ -316,10 +393,22 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
                     formProgress === 100 ? "bg-green-500" : formProgress > 50 ? "bg-gold" : "bg-forest/40"
                   }`}
                   initial={{ width: 0 }}
-                  animate={{ width: `${formProgress}%` }}
+                  animate={{
+                    width: `${formProgress}%`,
+                    boxShadow: formProgress === 100 ? "0 0 12px rgba(34,197,94,0.4)" : "0 0 0px transparent",
+                  }}
                   transition={{ duration: 0.5, ease: "easeOut" }}
                 />
               </div>
+              {/* Pulse effect when at 100% */}
+              {formProgress === 100 && (
+                <motion.div
+                  className="mt-1 h-0.5 bg-green-400/40 rounded-full"
+                  initial={{ scaleX: 0, opacity: 0 }}
+                  animate={{ scaleX: [0, 1, 0.8, 1], opacity: [0, 0.6, 0.3, 0.5] }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatType: "loop" }}
+                />
+              )}
             </div>
 
             {/* Prefill notice from chatbot */}
@@ -368,21 +457,32 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
                   <User className="w-4 h-4 text-muted-foreground" />
                   Full Name <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="name"
-                  autoComplete="name"
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={(e) => updateField("name", e.target.value)}
-                  onFocus={() => setFocusedField("name")}
-                  onBlur={() => setFocusedField(null)}
-                  className={`h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 transition-all duration-200 ${focusedField === "name" ? "ring-2 ring-forest/10 shadow-sm" : ""} ${errors.name ? "border-destructive focus:border-destructive" : ""}`}
-                />
-                {errors.name && (
-                  <p className="text-destructive text-xs flex items-center gap-1">
-                    {errors.name}
-                  </p>
-                )}
+                <div className={inputWrapperClass()}>
+                  {/* Expanding ring effect */}
+                  <div className={`absolute -inset-0.5 rounded-xl border-2 border-forest/0 pointer-events-none transition-all duration-500 ${focusedField === "name" ? "border-forest/15 -inset-1" : ""}`} />
+                  <Input
+                    id="name"
+                    autoComplete="name"
+                    placeholder="Enter your full name"
+                    value={formData.name}
+                    onChange={(e) => updateField("name", e.target.value)}
+                    onFocus={() => setFocusedField("name")}
+                    onBlur={() => setFocusedField(null)}
+                    className={`h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 transition-all duration-200 relative z-[1] ${errors.name ? "border-destructive focus:border-destructive" : ""}`}
+                  />
+                </div>
+                <AnimatePresence>
+                  {errors.name && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: "auto" }}
+                      exit={{ opacity: 0, y: -4, height: 0 }}
+                      className="text-destructive text-xs flex items-center gap-1 overflow-hidden"
+                    >
+                      {errors.name}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Batch */}
@@ -394,19 +494,31 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
                   <GraduationCap className="w-4 h-4 text-muted-foreground" />
                   Batch / Passing Year <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="batch"
-                  autoComplete="organization-title"
-                  placeholder="e.g., SSC 2010, HSC 2012"
-                  value={formData.batch}
-                  onChange={(e) => updateField("batch", e.target.value)}
-                  className={`h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 ${errors.batch ? "border-destructive focus:border-destructive" : ""}`}
-                />
-                {errors.batch && (
-                  <p className="text-destructive text-xs flex items-center gap-1">
-                    {errors.batch}
-                  </p>
-                )}
+                <div className={inputWrapperClass()}>
+                  <div className={`absolute -inset-0.5 rounded-xl border-2 border-forest/0 pointer-events-none transition-all duration-500 ${focusedField === "batch" ? "border-forest/15 -inset-1" : ""}`} />
+                  <Input
+                    id="batch"
+                    autoComplete="organization-title"
+                    placeholder="e.g., SSC 2010, HSC 2012"
+                    value={formData.batch}
+                    onChange={(e) => updateField("batch", e.target.value)}
+                    onFocus={() => setFocusedField("batch")}
+                    onBlur={() => setFocusedField(null)}
+                    className={`h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 transition-all duration-200 relative z-[1] ${errors.batch ? "border-destructive focus:border-destructive" : ""}`}
+                  />
+                </div>
+                <AnimatePresence>
+                  {errors.batch && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: "auto" }}
+                      exit={{ opacity: 0, y: -4, height: 0 }}
+                      className="text-destructive text-xs flex items-center gap-1 overflow-hidden"
+                    >
+                      {errors.batch}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Phone */}
@@ -418,22 +530,34 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
                   <Phone className="w-4 h-4 text-muted-foreground" />
                   Phone Number <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  inputMode="numeric"
-                  pattern="01[3-9][0-9]{8}"
-                  maxLength={11}
-                  placeholder="01XXXXXXXXX"
-                  value={formData.phone}
-                  onChange={(e) => updateField("phone", e.target.value)}
-                  className={`h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 ${errors.phone ? "border-destructive focus:border-destructive" : ""}`}
-                />
-                {errors.phone && (
-                  <p className="text-destructive text-xs flex items-center gap-1">
-                    {errors.phone}
-                  </p>
-                )}
+                <div className={inputWrapperClass()}>
+                  <div className={`absolute -inset-0.5 rounded-xl border-2 border-forest/0 pointer-events-none transition-all duration-500 ${focusedField === "phone" ? "border-forest/15 -inset-1" : ""}`} />
+                  <Input
+                    id="phone"
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="01[3-9][0-9]{8}"
+                    maxLength={11}
+                    placeholder="01XXXXXXXXX"
+                    value={formData.phone}
+                    onChange={(e) => updateField("phone", e.target.value)}
+                    onFocus={() => setFocusedField("phone")}
+                    onBlur={() => setFocusedField(null)}
+                    className={`h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 transition-all duration-200 relative z-[1] ${errors.phone ? "border-destructive focus:border-destructive" : ""}`}
+                  />
+                </div>
+                <AnimatePresence>
+                  {errors.phone && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: "auto" }}
+                      exit={{ opacity: 0, y: -4, height: 0 }}
+                      className="text-destructive text-xs flex items-center gap-1 overflow-hidden"
+                    >
+                      {errors.phone}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Email */}
@@ -445,21 +569,33 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
                   <Mail className="w-4 h-4 text-muted-foreground" />
                   Email <span className="text-muted-foreground font-normal">(optional)</span>
                 </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  placeholder="your@email.com"
-                  value={formData.email}
-                  onChange={(e) => updateField("email", e.target.value)}
-                  className={`h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 ${errors.email ? "border-destructive focus:border-destructive" : ""}`}
-                />
-                {errors.email && (
-                  <p className="text-destructive text-xs flex items-center gap-1">
-                    {errors.email}
-                  </p>
-                )}
+                <div className={inputWrapperClass()}>
+                  <div className={`absolute -inset-0.5 rounded-xl border-2 border-forest/0 pointer-events-none transition-all duration-500 ${focusedField === "email" ? "border-forest/15 -inset-1" : ""}`} />
+                  <Input
+                    id="email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    placeholder="your@email.com"
+                    value={formData.email}
+                    onChange={(e) => updateField("email", e.target.value)}
+                    onFocus={() => setFocusedField("email")}
+                    onBlur={() => setFocusedField(null)}
+                    className={`h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 transition-all duration-200 relative z-[1] ${errors.email ? "border-destructive focus:border-destructive" : ""}`}
+                  />
+                </div>
+                <AnimatePresence>
+                  {errors.email && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: "auto" }}
+                      exit={{ opacity: 0, y: -4, height: 0 }}
+                      className="text-destructive text-xs flex items-center gap-1 overflow-hidden"
+                    >
+                      {errors.email}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Profession */}
@@ -471,14 +607,19 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
                   <Briefcase className="w-4 h-4 text-muted-foreground" />
                   Profession <span className="text-muted-foreground font-normal">(optional)</span>
                 </Label>
-                <Input
-                  id="profession"
-                  autoComplete="organization"
-                  placeholder="Your current profession"
-                  value={formData.profession}
-                  onChange={(e) => updateField("profession", e.target.value)}
-                  className="h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50"
-                />
+                <div className={inputWrapperClass()}>
+                  <div className={`absolute -inset-0.5 rounded-xl border-2 border-forest/0 pointer-events-none transition-all duration-500 ${focusedField === "profession" ? "border-forest/15 -inset-1" : ""}`} />
+                  <Input
+                    id="profession"
+                    autoComplete="organization"
+                    placeholder="Your current profession"
+                    value={formData.profession}
+                    onChange={(e) => updateField("profession", e.target.value)}
+                    onFocus={() => setFocusedField("profession")}
+                    onBlur={() => setFocusedField(null)}
+                    className="h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 transition-all duration-200 relative z-[1]"
+                  />
+                </div>
               </div>
 
               {/* Location */}
@@ -490,14 +631,19 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
                   <MapPin className="w-4 h-4 text-muted-foreground" />
                   Current Location <span className="text-muted-foreground font-normal">(optional)</span>
                 </Label>
-                <Input
-                  id="location"
-                  autoComplete="address-level2"
-                  placeholder="Where are you currently living?"
-                  value={formData.location}
-                  onChange={(e) => updateField("location", e.target.value)}
-                  className="h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50"
-                />
+                <div className={inputWrapperClass()}>
+                  <div className={`absolute -inset-0.5 rounded-xl border-2 border-forest/0 pointer-events-none transition-all duration-500 ${focusedField === "location" ? "border-forest/15 -inset-1" : ""}`} />
+                  <Input
+                    id="location"
+                    autoComplete="address-level2"
+                    placeholder="Where are you currently living?"
+                    value={formData.location}
+                    onChange={(e) => updateField("location", e.target.value)}
+                    onFocus={() => setFocusedField("location")}
+                    onBlur={() => setFocusedField(null)}
+                    className="h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 transition-all duration-200 relative z-[1]"
+                  />
+                </div>
               </div>
             </div>
 
@@ -543,21 +689,33 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
                 <Users className="w-4 h-4 text-muted-foreground" />
                 Number of Guests <span className="text-muted-foreground font-normal">(family members accompanying you)</span>
               </Label>
-              <Input
-                id="guests"
-                type="number"
-                inputMode="numeric"
-                min="0"
-                max="10"
-                value={formData.guests}
-                onChange={(e) => updateField("guests", e.target.value)}
-                className={`h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 w-32 ${errors.guests ? "border-destructive focus:border-destructive" : ""}`}
-              />
-              {errors.guests && (
-                <p className="text-destructive text-xs flex items-center gap-1">
-                  {errors.guests}
-                </p>
-              )}
+              <div className={inputWrapperClass()}>
+                <div className={`absolute -inset-0.5 rounded-xl border-2 border-forest/0 pointer-events-none transition-all duration-500 ${focusedField === "guests" ? "border-forest/15 -inset-1" : ""}`} />
+                <Input
+                  id="guests"
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  max="10"
+                  value={formData.guests}
+                  onChange={(e) => updateField("guests", e.target.value)}
+                  onFocus={() => setFocusedField("guests")}
+                  onBlur={() => setFocusedField(null)}
+                  className={`h-12 bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 w-32 transition-all duration-200 relative z-[1] ${errors.guests ? "border-destructive focus:border-destructive" : ""}`}
+                />
+              </div>
+              <AnimatePresence>
+                {errors.guests && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -4, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={{ opacity: 0, y: -4, height: 0 }}
+                    className="text-destructive text-xs flex items-center gap-1 overflow-hidden"
+                  >
+                    {errors.guests}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Message */}
@@ -569,42 +727,49 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
                 <MessageSquare className="w-4 h-4 text-muted-foreground" />
                 Memory / Message <span className="text-muted-foreground font-normal">(optional)</span>
               </Label>
-              <Textarea
-                id="message"
-                placeholder="Share a school memory or a message for your teachers..."
-                value={formData.message}
-                onChange={(e) => updateField("message", e.target.value)}
-                rows={4}
-                className="bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 resize-none"
-              />
+              <div className={inputWrapperClass()}>
+                <div className={`absolute -inset-0.5 rounded-xl border-2 border-forest/0 pointer-events-none transition-all duration-500 ${focusedField === "message" ? "border-forest/15 -inset-1" : ""}`} />
+                <Textarea
+                  id="message"
+                  placeholder="Share a school memory or a message for your teachers..."
+                  value={formData.message}
+                  onChange={(e) => updateField("message", e.target.value)}
+                  onFocus={() => setFocusedField("message")}
+                  onBlur={() => setFocusedField(null)}
+                  rows={4}
+                  className="bg-cream/50 border-forest/10 focus:border-forest/30 placeholder:text-muted-foreground/50 resize-none transition-all duration-200 relative z-[1]"
+                />
+              </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit Button with hover scale */}
             <div className="mt-8">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                size="lg"
-                className="w-full h-14 bg-forest hover:bg-forest-light text-white font-semibold text-lg rounded-2xl shadow-lg shadow-forest/20 hover:shadow-forest/30 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:hover:scale-100"
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Registering...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5" />
-                    Complete Registration
-                  </span>
-                )}
-              </Button>
+              <motion.div whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }} transition={{ type: "spring", stiffness: 400, damping: 25 }}>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  size="lg"
+                  className="w-full h-14 bg-forest hover:bg-forest-light text-white font-semibold text-lg rounded-2xl shadow-lg shadow-forest/20 hover:shadow-forest/30 transition-all duration-300 disabled:opacity-70"
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Registering...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5" />
+                      Complete Registration
+                    </span>
+                  )}
+                </Button>
+              </motion.div>
             </div>
 
             <p className="text-center text-muted-foreground/60 text-xs mt-4">
               Your information is completely safe and confidential
             </p>
-          </form>
+          </motion.form>
         </SectionReveal>
 
         {/* Join Our Team CTA */}

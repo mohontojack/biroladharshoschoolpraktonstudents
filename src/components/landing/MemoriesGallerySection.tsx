@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useCallback } from "react";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import {
   Heart,
   MessageCircle,
@@ -20,8 +20,10 @@ import {
   Quote,
   ExternalLink,
   Bus,
+  ChevronDown,
 } from "lucide-react";
 import SectionReveal from "./SectionReveal";
+import TiltCard from "./TiltCard";
 
 interface MemoryItem {
   id: string;
@@ -203,6 +205,33 @@ const memories: MemoryItem[] = [
   },
 ];
 
+const INITIAL_CARD_COUNT = 6;
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const staggerCard = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      stiffness: 260,
+      damping: 20,
+    },
+  },
+};
+
 function MemoryCard({
   memory,
   index,
@@ -224,90 +253,88 @@ function MemoryCard({
   };
 
   return (
-    <SectionReveal
-      delay={index * 0.08}
-      direction={index % 3 === 0 ? "left" : index % 3 === 1 ? "up" : "right"}
-    >
-      <motion.div
-        whileHover={{ y: -4 }}
-        className="group relative bg-white rounded-2xl overflow-hidden border border-forest/5 hover:border-gold/25 hover:shadow-xl hover:shadow-forest/8 transition-all duration-500 cursor-pointer h-full flex flex-col"
-        onClick={onOpen}
-      >
-        {/* Image */}
-        <div className="relative h-48 overflow-hidden">
-          <img
-            src={memory.image}
-            alt={memory.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          />
-          <div className={`absolute inset-0 bg-gradient-to-t ${memory.color} opacity-40`} />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+    <motion.div variants={staggerCard} layout>
+      <TiltCard tiltAmount={6} glareEnabled>
+        <div
+          className="group relative bg-white rounded-2xl overflow-hidden border border-forest/5 hover:border-gold/25 hover:shadow-xl hover:shadow-forest/8 transition-all duration-500 cursor-pointer h-full flex flex-col"
+          onClick={onOpen}
+        >
+          {/* Image */}
+          <div className="relative h-48 overflow-hidden">
+            <img
+              src={memory.image}
+              alt={memory.title}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            />
+            <div className={`absolute inset-0 bg-gradient-to-t ${memory.color} opacity-40`} />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
-          {/* Category badge */}
-          <div className="absolute top-3 left-3">
-            <span className="px-2.5 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-xs font-semibold">
-              {memory.category}
-            </span>
-          </div>
-
-          {/* Icon */}
-          <div className="absolute top-3 right-3">
-            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Icon className="w-4 h-4 text-white" />
-            </div>
-          </div>
-
-          {/* Bottom gradient text */}
-          <div className="absolute bottom-3 left-4 right-4">
-            <h3 className="text-white font-bold text-sm drop-shadow-lg leading-tight">
-              {memory.title}
-            </h3>
-            <p className="text-white/70 text-xs mt-0.5 font-medium">
-              {memory.titleBn}
-            </p>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 p-5 flex flex-col">
-          <p className="text-muted-foreground text-sm leading-relaxed flex-1 line-clamp-3">
-            {memory.description}
-          </p>
-
-          {/* Actions */}
-          <div className="flex items-center gap-3 mt-4 pt-3 border-t border-forest/5">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleLike();
-              }}
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs transition-all duration-200 min-h-[36px] ${
-                liked
-                  ? "bg-red-50 text-red-500 border border-red-200"
-                  : "bg-cream text-muted-foreground border border-transparent hover:border-gold/20"
-              }`}
-            >
-              <Heart
-                className={`w-3 h-3 ${liked ? "fill-red-500" : ""}`}
-              />
-              <span>{likeCount}</span>
-            </button>
-            <button
-              onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs text-muted-foreground hover:text-forest hover:bg-cream transition-colors min-h-[36px]"
-            >
-              <MessageCircle className="w-3 h-3" />
-              <span>Comment</span>
-            </button>
-            <div className="ml-auto">
-              <span className="text-xs text-muted-foreground/40 font-medium">
-                Read Story →
+            {/* Category badge */}
+            <div className="absolute top-3 left-3">
+              <span className="px-2.5 py-1 bg-white/20 backdrop-blur-sm rounded-full text-white text-xs font-semibold">
+                {memory.category}
               </span>
             </div>
+
+            {/* Icon */}
+            <div className="absolute top-3 right-3">
+              <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <Icon className="w-4 h-4 text-white" />
+              </div>
+            </div>
+
+            {/* Bottom gradient text */}
+            <div className="absolute bottom-3 left-4 right-4">
+              <h3 className="text-white font-bold text-sm drop-shadow-lg leading-tight">
+                {memory.title}
+              </h3>
+              <p className="text-white/70 text-xs mt-0.5 font-medium">
+                {memory.titleBn}
+              </p>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 p-5 flex flex-col">
+            <p className="text-muted-foreground text-sm leading-relaxed flex-1 line-clamp-3">
+              {memory.description}
+            </p>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3 mt-4 pt-3 border-t border-forest/5">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLike();
+                }}
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs transition-all duration-200 min-h-[36px] ${
+                  liked
+                    ? "bg-red-50 text-red-500 border border-red-200"
+                    : "bg-cream text-muted-foreground border border-transparent hover:border-gold/20"
+                }`}
+              >
+                <Heart
+                  className={`w-3 h-3 ${liked ? "fill-red-500" : ""}`}
+                />
+                <span>{likeCount}</span>
+              </button>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs text-muted-foreground hover:text-forest hover:bg-cream transition-colors min-h-[36px]"
+              >
+                <MessageCircle className="w-3 h-3" />
+                <span>Comment</span>
+              </button>
+              <div className="ml-auto">
+                <span className="text-xs text-muted-foreground/40 font-medium">
+                  Read Story →
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      </motion.div>
-    </SectionReveal>
+      </TiltCard>
+    </motion.div>
   );
 }
 
@@ -327,64 +354,101 @@ function MemoryModal({
   hasNext: boolean;
 }) {
   const Icon = memory.icon;
+  const mouseY = useMotionValue(0);
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const normalizedY = (e.clientY - rect.top) / rect.height - 0.5;
+      mouseY.set(normalizedY);
+    },
+    [mouseY]
+  );
+
+  const imageY = useSpring(useTransform(mouseY, [-0.5, 0.5], [12, -12]), {
+    stiffness: 120,
+    damping: 30,
+  });
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-forest-dark/80 backdrop-blur-sm" />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="absolute inset-0 bg-forest-dark/80 backdrop-blur-sm"
+      />
 
       {/* Modal Content */}
       <motion.div
-        initial={{ scale: 0.9, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 20 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        initial={{ scale: 0.85, y: 40, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.9, y: 30, opacity: 0 }}
+        transition={{
+          type: "spring",
+          stiffness: 320,
+          damping: 28,
+          mass: 0.8,
+        }}
         className="relative bg-white rounded-2xl overflow-hidden max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header image */}
-        <div className="relative h-52 overflow-hidden">
-          <img
+        {/* Header image with parallax */}
+        <div
+          className="relative h-56 overflow-hidden"
+          onMouseMove={handleMouseMove}
+        >
+          <motion.img
             src={memory.image}
             alt={memory.title}
-            className="w-full h-full object-cover"
+            className="w-full h-[120%] object-cover -mt-[10%]"
+            style={{ y: imageY }}
           />
           <div className={`absolute inset-0 bg-gradient-to-t ${memory.color} opacity-40`} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
           {/* Close button */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={onClose}
             className="absolute top-3 right-3 p-2.5 bg-black/30 hover:bg-black/50 rounded-full text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
-          </button>
+          </motion.button>
 
           {/* Navigation arrows */}
           {hasPrev && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={onPrev}
               className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 bg-black/30 hover:bg-black/50 rounded-full text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Previous"
             >
               <ChevronLeft className="w-5 h-5" />
-            </button>
+            </motion.button>
           )}
           {hasNext && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={onNext}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-black/30 hover:bg-black/50 rounded-full text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Next"
             >
               <ChevronRight className="w-5 h-5" />
-            </button>
+            </motion.button>
           )}
 
           <div className="absolute bottom-4 left-5 right-5">
@@ -399,7 +463,12 @@ function MemoryModal({
         </div>
 
         {/* Content */}
-        <div className="p-6 md:p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.4 }}
+          className="p-6 md:p-8"
+        >
           {/* Story */}
           <div className="relative mb-6">
             <div className="absolute -left-4 top-0 text-gold/10">
@@ -412,14 +481,22 @@ function MemoryModal({
 
           {/* Actions */}
           <div className="flex items-center gap-3 pt-4 border-t border-forest/5">
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-forest/5 hover:bg-forest/10 rounded-full text-forest-dark text-sm transition-colors">
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-forest/5 hover:bg-forest/10 rounded-full text-forest-dark text-sm transition-colors"
+            >
               <Heart className="w-4 h-4" />
               Like
-            </button>
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-cream hover:bg-sage rounded-full text-muted-foreground text-sm transition-colors">
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-cream hover:bg-sage rounded-full text-muted-foreground text-sm transition-colors"
+            >
               <Share2 className="w-4 h-4" />
               Share
-            </button>
+            </motion.button>
             <a
               href="https://www.facebook.com/bahs.dnj"
               target="_blank"
@@ -430,7 +507,7 @@ function MemoryModal({
               View on FB
             </a>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );
@@ -440,11 +517,18 @@ export default function MemoriesGallerySection() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedMemory, setSelectedMemory] = useState<MemoryItem | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [showAll, setShowAll] = useState(false);
 
   const filteredMemories =
     selectedCategory === "All"
       ? memories
       : memories.filter((m) => m.category === selectedCategory);
+
+  const visibleMemories = showAll
+    ? filteredMemories
+    : filteredMemories.slice(0, INITIAL_CARD_COUNT);
+
+  const hasMore = filteredMemories.length > INITIAL_CARD_COUNT;
 
   const openMemory = (memory: MemoryItem, index: number) => {
     setSelectedMemory(memory);
@@ -464,7 +548,7 @@ export default function MemoriesGallerySection() {
   };
 
   return (
-    <section id="memories" className="py-24 md:py-32 bg-gradient-to-b from-cream to-white relative overflow-hidden">
+    <section id="memories" className="py-16 md:py-24 bg-gradient-to-b from-cream to-white relative overflow-hidden">
       {/* Background */}
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
       <div className="absolute top-1/3 right-0 w-64 h-64 bg-gold/3 rounded-full blur-3xl" />
@@ -472,7 +556,7 @@ export default function MemoriesGallerySection() {
 
       <div className="max-w-6xl mx-auto px-6 relative z-10">
         {/* Section Header */}
-        <SectionReveal className="text-center mb-12 md:mb-16">
+        <SectionReveal className="text-center mb-8 md:mb-12">
           <div className="inline-flex items-center gap-2 bg-forest/5 rounded-full px-4 py-1.5 mb-6">
             <Camera className="w-3.5 h-3.5 text-gold" />
             <span className="text-forest/70 text-sm font-medium">
@@ -493,13 +577,13 @@ export default function MemoriesGallerySection() {
         </SectionReveal>
 
         {/* Featured Memory Banner */}
-        <SectionReveal delay={0.1} className="mb-12">
+        <SectionReveal delay={0.1} className="mb-10">
           <div className="relative rounded-2xl overflow-hidden group cursor-pointer" onClick={() => openMemory(memories[0], 0)}>
-            <div className="relative h-56 md:h-72">
+            <div className="relative h-56 md:h-72 overflow-hidden">
               <img
                 src="/images/gallery/img19.jpg"
                 alt="BAHS Alumni — Memories That Last Forever"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-forest-dark/80 via-forest-dark/40 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-t from-forest-dark/50 to-transparent" />
@@ -530,34 +614,51 @@ export default function MemoriesGallerySection() {
         </SectionReveal>
 
         {/* Category Filter */}
-        <SectionReveal delay={0.15} className="mb-10">
+        <SectionReveal delay={0.15} className="mb-8">
           <div className="flex flex-wrap items-center justify-center gap-2">
             {memoryCategories.map((cat) => (
-              <button
+              <motion.button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setShowAll(false);
+                }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 ${
                   selectedCategory === cat
                     ? "bg-forest text-white shadow-md shadow-forest/20"
                     : "bg-white text-muted-foreground border border-forest/10 hover:border-gold/30 hover:text-forest-dark"
                 }`}
               >
+                {selectedCategory === cat && (
+                  <motion.div
+                    layoutId="category-active"
+                    className="absolute inset-0 bg-forest rounded-full shadow-md shadow-forest/20 -z-10"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
                 {cat}
-              </button>
+              </motion.button>
             ))}
           </div>
           <p className="text-center text-muted-foreground/60 text-xs mt-3">
-            Showing {filteredMemories.length} {filteredMemories.length === 1 ? "memory" : "memories"} — click any card to read the full story
+            Showing {visibleMemories.length} of {filteredMemories.length} {filteredMemories.length === 1 ? "memory" : "memories"} — click any card to read the full story
           </p>
         </SectionReveal>
 
-        {/* Memory Cards Grid */}
+        {/* Memory Cards Grid with Stagger */}
         <motion.div
           layout
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-50px" }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           <AnimatePresence mode="popLayout">
-            {filteredMemories.map((memory, index) => (
+            {visibleMemories.map((memory, index) => (
               <MemoryCard
                 key={memory.id}
                 memory={memory}
@@ -568,8 +669,35 @@ export default function MemoriesGallerySection() {
           </AnimatePresence>
         </motion.div>
 
+        {/* Show More / Show Less Button */}
+        {hasMore && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+            className="flex justify-center mt-10"
+          >
+            <motion.button
+              onClick={() => setShowAll(!showAll)}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-forest/10 hover:border-gold/40 rounded-full text-forest-dark text-sm font-medium shadow-sm hover:shadow-md transition-colors duration-300 group"
+            >
+              <span>{showAll ? "Show Less" : `Show All ${filteredMemories.length} Memories`}</span>
+              <motion.div
+                animate={{ rotate: showAll ? 180 : 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <ChevronDown className="w-4 h-4 text-gold group-hover:text-gold-dark transition-colors" />
+              </motion.div>
+            </motion.button>
+          </motion.div>
+        )}
+
         {/* Facebook page link */}
-        <SectionReveal delay={0.3} className="text-center mt-12">
+        <SectionReveal delay={0.3} className="text-center mt-10">
           <a
             href="https://www.facebook.com/bahs.dnj"
             target="_blank"

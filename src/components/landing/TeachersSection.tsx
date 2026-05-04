@@ -1,7 +1,10 @@
 "use client";
 
-import { Award, Heart, Star, Clock, BookOpen } from "lucide-react";
+import { Award, Heart, Star, Clock, BookOpen, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 import SectionReveal from "./SectionReveal";
+import TiltCard from "./TiltCard";
+import TextReveal from "./TextReveal";
 
 interface FarewellHonoree {
   name: string;
@@ -59,74 +62,131 @@ const honorees: FarewellHonoree[] = [
   },
 ];
 
+/** Stagger animation variants for the "Other Honorees" grid */
+const gridContainerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.12,
+    },
+  },
+};
+
+const gridItemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: [0.25, 0.46, 0.45, 0.94],
+    },
+  },
+};
+
 function HonoreeCard({ honoree, index }: { honoree: FarewellHonoree; index: number }) {
   const IconComponent = honoree.icon;
 
   if (honoree.isFeatured) {
     return (
       <SectionReveal delay={0.1}>
-        <div className="relative bg-gradient-to-br from-forest to-forest-dark rounded-3xl p-1 overflow-hidden group">
-          {/* Gold border glow */}
-          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-gold/30 via-transparent to-gold/20 group-hover:from-gold/50 group-hover:via-gold/10 group-hover:to-gold/40 transition-all duration-700" />
-          <div className="relative bg-gradient-to-br from-forest to-forest-dark rounded-3xl p-8 md:p-12 transition-all duration-500 group-hover:p-10 md:group-hover:p-14">
-            {/* Featured badge */}
-            <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
-              <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-gold fill-gold" />
-                <span className="text-gold font-semibold text-sm tracking-wider uppercase">
-                  Main Farewell Honor
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-gold/15 rounded-full px-3 py-1">
-                <Clock className="w-3.5 h-3.5 text-gold" />
-                <span className="text-gold/90 text-xs font-medium">
-                  June 30, 2026
-                </span>
-              </div>
-            </div>
+        <TiltCard tiltAmount={4} className="group relative">
+          <div className="relative bg-gradient-to-br from-forest to-forest-dark rounded-3xl p-1 overflow-hidden group">
+            {/* Gold border glow */}
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-gold/30 via-transparent to-gold/20 group-hover:from-gold/50 group-hover:via-gold/10 group-hover:to-gold/40 transition-all duration-700" />
+            <div className="relative bg-gradient-to-br from-forest to-forest-dark rounded-3xl p-8 md:p-12 transition-all duration-500 group-hover:p-10 md:group-hover:p-14">
 
-            {/* Avatar */}
-            <div className="flex items-center gap-5 mb-6">
-              {honoree.photo ? (
-                <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-gold/40 shadow-lg flex-shrink-0 group-hover:border-gold/70 group-hover:shadow-gold/20 transition-all duration-500">
-                  <img
-                    src={honoree.photo}
-                    alt={honoree.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
+              {/* Floating "tribute" badge */}
+              <motion.div
+                className="absolute top-4 left-1/2 -translate-x-1/2 z-30"
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <div className="flex items-center gap-1.5 bg-gold/20 backdrop-blur-sm text-gold text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full border border-gold/20">
+                  <Sparkles className="w-3 h-3" />
+                  Tribute
+                  <Sparkles className="w-3 h-3" />
                 </div>
-              ) : (
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gold/30 to-gold/10 flex items-center justify-center border-2 border-gold/40">
-                  <span className="text-3xl font-bold text-gold">
-                    {honoree.name.charAt(0)}
+              </motion.div>
+
+              {/* Featured badge */}
+              <div className="flex items-center justify-between mb-8 mt-6 flex-wrap gap-3">
+                <div className="flex items-center gap-2">
+                  {/* Heart pulse animation on hover */}
+                  <motion.div
+                    className="flex items-center gap-1"
+                    whileHover={{ scale: 1.15 }}
+                  >
+                    <Star className="w-5 h-5 text-gold fill-gold" />
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.6, 1, 0.6],
+                      }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      style={{ originX: 0.5, originY: 0.5 }}
+                    >
+                      <Heart className="w-4 h-4 text-gold" fill="currentColor" />
+                    </motion.div>
+                  </motion.div>
+                  <span className="text-gold font-semibold text-sm tracking-wider uppercase">
+                    Main Farewell Honor
                   </span>
                 </div>
-              )}
-              <div>
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-1">
-                  {honoree.name}
-                </h3>
-                <p className="text-gold/80 font-medium">{honoree.title}</p>
-                <p className="text-white/50 text-sm mt-1">{honoree.status}</p>
+                <div className="flex items-center gap-1.5 bg-gold/15 rounded-full px-3 py-1">
+                  <Clock className="w-3.5 h-3.5 text-gold" />
+                  <span className="text-gold/90 text-xs font-medium">
+                    June 30, 2026
+                  </span>
+                </div>
               </div>
+
+              {/* Avatar */}
+              <div className="flex items-center gap-5 mb-6">
+                {honoree.photo ? (
+                  <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-gold/40 shadow-lg flex-shrink-0 group-hover:border-gold/70 group-hover:shadow-gold/20 transition-all duration-500">
+                    <img
+                      src={honoree.photo}
+                      alt={honoree.name}
+                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gold/30 to-gold/10 flex items-center justify-center border-2 border-gold/40">
+                    <span className="text-3xl font-bold text-gold">
+                      {honoree.name.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-1">
+                    {honoree.name}
+                  </h3>
+                  <p className="text-gold/80 font-medium">{honoree.title}</p>
+                  <p className="text-white/50 text-sm mt-1">{honoree.status}</p>
+                </div>
+              </div>
+
+              <p className="text-white/75 leading-relaxed text-lg">
+                {honoree.description}
+              </p>
+
+              {/* Decorative corner */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 rounded-bl-[100px]" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gold/5 rounded-tr-[80px]" />
             </div>
-
-            <p className="text-white/75 leading-relaxed text-lg">
-              {honoree.description}
-            </p>
-
-            {/* Decorative corner */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 rounded-bl-[100px]" />
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gold/5 rounded-tr-[80px]" />
           </div>
-        </div>
+        </TiltCard>
       </SectionReveal>
     );
   }
 
   return (
-    <SectionReveal delay={0.15 + index * 0.1}>
-      <div className="group relative bg-white rounded-2xl p-6 md:p-8 border border-forest/5 hover:border-gold/20 transition-all duration-500 hover:shadow-lg hover:shadow-forest/5 hover:-translate-y-1">
+    <TiltCard tiltAmount={4}>
+      <motion.div
+        variants={gridItemVariants}
+        className="group relative bg-white rounded-2xl p-6 md:p-8 border border-forest/5 hover:border-gold/20 transition-all duration-500 hover:shadow-lg hover:shadow-forest/5 hover:-translate-y-1"
+      >
         {/* Subtle top accent */}
         <div className="absolute top-0 left-6 right-6 h-[2px] bg-gradient-to-r from-gold/0 via-gold/30 to-gold/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
@@ -136,7 +196,7 @@ function HonoreeCard({ honoree, index }: { honoree: FarewellHonoree; index: numb
               <img
                 src={honoree.photo}
                 alt={honoree.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
               />
             </div>
           ) : (
@@ -164,12 +224,24 @@ function HonoreeCard({ honoree, index }: { honoree: FarewellHonoree; index: numb
           {honoree.description}
         </p>
 
-        {/* Heart icon decoration */}
-        <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        {/* Heart icon decoration with pulse on hover */}
+        <motion.div
+          className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          animate={
+            {
+              scale: [1, 1.25, 1],
+            }
+          }
+          transition={{
+            duration: 1.2,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        >
           <Heart className="w-4 h-4 text-gold/40" />
-        </div>
-      </div>
-    </SectionReveal>
+        </motion.div>
+      </motion.div>
+    </TiltCard>
   );
 }
 
@@ -178,7 +250,7 @@ export default function TeachersSection() {
   const otherHonorees = honorees.filter((h) => !h.isFeatured);
 
   return (
-    <section id="teachers" className="py-24 md:py-32 bg-cream relative overflow-hidden">
+    <section id="teachers" className="py-16 md:py-24 bg-cream relative overflow-hidden">
       {/* Background pattern */}
       <div className="absolute inset-0 opacity-[0.02]">
         <div
@@ -192,7 +264,7 @@ export default function TeachersSection() {
 
       <div className="max-w-6xl mx-auto px-6 relative z-10">
         {/* Section Header */}
-        <SectionReveal className="text-center mb-16 md:mb-20">
+        <SectionReveal className="text-center mb-12 md:mb-16">
           {/* School emblem decoration */}
           <div className="relative inline-block mb-6">
             <div className="w-16 h-16 rounded-full bg-white border-2 border-gold/20 p-0.5 mx-auto">
@@ -209,13 +281,18 @@ export default function TeachersSection() {
               With Love & Respect
             </span>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-forest-dark mb-6">
-            Honoring Those Who
-            <span className="block text-forest/60 font-light mt-2">
-              Gave Us Everything
-            </span>
-          </h2>
-          <p className="text-muted-foreground text-lg max-w-3xl mx-auto leading-relaxed">
+          <TextReveal
+            text="Honoring Those Who"
+            as="h2"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold text-forest-dark mb-2"
+          />
+          <TextReveal
+            text="Gave Us Everything"
+            as="span"
+            delay={0.3}
+            className="block text-forest/60 font-light text-2xl sm:text-3xl md:text-4xl mt-2"
+          />
+          <p className="text-muted-foreground text-lg max-w-3xl mx-auto leading-relaxed mt-6">
             Some beloved faces are gradually bidding farewell as they retire from service.
             Their contributions to our school and our lives can never be forgotten.
             This event is our opportunity to express our deepest gratitude and love.
@@ -238,12 +315,18 @@ export default function TeachersSection() {
           </div>
         </SectionReveal>
 
-        {/* Other Honorees Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 md:gap-8">
+        {/* Other Honorees Grid with stagger animations */}
+        <motion.div
+          variants={gridContainerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 md:gap-8"
+        >
           {otherHonorees.map((honoree, index) => (
             <HonoreeCard key={index} honoree={honoree} index={index} />
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

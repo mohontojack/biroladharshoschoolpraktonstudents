@@ -14,6 +14,7 @@ import WhatsAppButton from "@/components/landing/WhatsAppButton";
 import AIChatbot from "@/components/landing/AIChatbot";
 import BackToTop from "@/components/landing/BackToTop";
 import FloatingNav from "@/components/landing/FloatingNav";
+import SectionDivider from "@/components/landing/SectionDivider";
 
 // Shared event bus for chatbot → form communication
 type RegistrationDataHandler = ((data: Record<string, string>) => void) | null;
@@ -57,11 +58,15 @@ export default function Home() {
   const handleChatbotRegistration = useCallback(
     (data: Record<string, string>) => {
       setChatbotData(data);
-      // Scroll to registration section
+      // Scroll to registration section with mobile nav offset
       setTimeout(() => {
-        document
-          .getElementById("registration")
-          ?.scrollIntoView({ behavior: "smooth" });
+        const el = document.getElementById("registration");
+        if (el) {
+          const isMobile = window.innerWidth < 768;
+          const offset = isMobile ? 70 : 0;
+          const top = el.getBoundingClientRect().top + window.scrollY - offset;
+          window.scrollTo({ top, behavior: "smooth" });
+        }
       }, 500);
     },
     []
@@ -84,10 +89,15 @@ export default function Home() {
 
       <main className={`flex-1 ${!showSplash ? "page-reveal" : "opacity-0"}`}>
         <HeroSection />
+        <SectionDivider style="dots" variant="gold" />
         <MemoriesGallerySection />
+        <SectionDivider style="wave" variant="subtle" />
         <VideoSection />
+        <SectionDivider style="dots" variant="forest" />
         <TeachersSection />
+        <SectionDivider style="line" variant="gold" />
         <EventDetailsSection />
+        <SectionDivider style="curve" variant="subtle" />
         <RegistrationSection prefilledData={chatbotData} />
       </main>
       <Footer className={showSplash ? "opacity-0" : ""} />

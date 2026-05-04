@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, X, Volume2, Film, Share2, Eye } from "lucide-react";
 import SectionReveal from "./SectionReveal";
+import TiltCard from "./TiltCard";
+import TextReveal from "./TextReveal";
 
 interface VideoItem {
   id: string;
@@ -80,7 +82,7 @@ function VideoCard({
 
   return (
     <SectionReveal delay={index * 0.15} direction={index === 0 ? "left" : "right"}>
-      <div ref={cardRef} className="group relative">
+      <TiltCard tiltAmount={5} glareEnabled className="group relative">
         {/* The Preview Card */}
         <AnimatePresence mode="wait">
           {!isPlaying ? (
@@ -93,6 +95,21 @@ function VideoCard({
               className="relative rounded-2xl overflow-hidden border border-forest/10 hover:border-gold/25 transition-all duration-500 hover:shadow-2xl hover:shadow-forest/10 cursor-pointer"
               onClick={handlePlay}
             >
+              {/* Shimmer border effect on hover */}
+              <div className="absolute inset-0 rounded-2xl pointer-events-none z-20">
+                <div className="absolute -inset-[1px] rounded-2xl overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                  <motion.div
+                    className="absolute inset-0"
+                    style={{
+                      background: "conic-gradient(from 0deg, transparent 0%, rgba(200,164,94,0.3) 10%, transparent 20%)",
+                    }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  />
+                  <div className="absolute inset-[1px] rounded-2xl bg-white" />
+                </div>
+              </div>
+
               {/* Thumbnail Area with Gradient */}
               <div
                 className={`relative h-64 sm:h-72 md:h-80 bg-gradient-to-br ${video.thumbnailGradient} flex items-center justify-center overflow-hidden`}
@@ -128,13 +145,19 @@ function VideoCard({
                   />
                 </div>
 
-                {/* Play Button */}
+                {/* Play Button with rotating ring */}
                 <motion.div
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   className="relative z-10"
                 >
                   <div className="relative">
+                    {/* Rotating outer ring */}
+                    <motion.div
+                      className={`absolute inset-0 w-24 h-24 -m-4 rounded-full border-2 border-dashed ${video.accent === 'gold' ? 'border-gold/30' : 'border-white/30'}`}
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                    />
                     {/* Outer ring pulse */}
                     <div className={`absolute inset-0 w-20 h-20 -m-2 rounded-full ${video.accent === 'gold' ? 'bg-gold/20' : 'bg-white/20'} animate-ping`} style={{ animationDuration: '2s' }} />
                     {/* Main play button */}
@@ -242,33 +265,46 @@ function VideoCard({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </TiltCard>
     </SectionReveal>
   );
 }
 
+/** Easing function for smooth count-up */
+function easeOutExpo(t: number): number {
+  return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+}
+
 export default function VideoSection() {
   const [viewCount, setViewCount] = useState(0);
+  const [viewCountDone, setViewCountDone] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          // Animate view count
-          const duration = 1500;
-          const steps = 60;
-          const increment = 1200 / steps;
-          let current = 0;
-          const interval = setInterval(() => {
-            current += increment;
-            if (current >= 1200) {
-              setViewCount(1200);
-              clearInterval(interval);
+          // Smooth eased view count animation
+          const target = 1200;
+          const duration = 2000;
+          const startTime = performance.now();
+
+          const animate = (currentTime: number) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easedProgress = easeOutExpo(progress);
+            const current = Math.floor(easedProgress * target);
+            setViewCount(current);
+
+            if (progress < 1) {
+              requestAnimationFrame(animate);
             } else {
-              setViewCount(Math.floor(current));
+              setViewCount(target);
+              setViewCountDone(true);
             }
-          }, duration / steps);
+          };
+
+          requestAnimationFrame(animate);
           observer.disconnect();
         }
       },
@@ -286,7 +322,7 @@ export default function VideoSection() {
     <section
       id="videos"
       ref={sectionRef}
-      className="py-24 md:py-32 bg-gradient-to-b from-white via-cream/50 to-white relative overflow-hidden"
+      className="py-16 md:py-24 bg-gradient-to-b from-white via-cream/50 to-white relative overflow-hidden"
     >
       {/* Background decorative elements */}
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
@@ -295,20 +331,25 @@ export default function VideoSection() {
 
       <div className="max-w-6xl mx-auto px-6 relative z-10">
         {/* Section Header */}
-        <SectionReveal className="text-center mb-16 md:mb-20">
+        <SectionReveal className="text-center mb-12 md:mb-16">
           <div className="inline-flex items-center gap-2 bg-forest/5 rounded-full px-4 py-1.5 mb-6">
             <div className="w-2 h-2 bg-gold rounded-full" />
             <span className="text-forest/70 text-sm font-medium">
               Video Highlights
             </span>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-forest-dark mb-6">
-            Relive the Moments
-            <span className="block text-forest/60 font-light mt-2">
-              Through Our Videos
-            </span>
-          </h2>
-          <p className="text-muted-foreground text-lg max-w-3xl mx-auto leading-relaxed">
+          <TextReveal
+            text="Relive the Moments"
+            as="h2"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold text-forest-dark mb-2"
+          />
+          <TextReveal
+            text="Through Our Videos"
+            as="span"
+            delay={0.3}
+            className="block text-forest/60 font-light text-2xl sm:text-3xl md:text-4xl mt-2"
+          />
+          <p className="text-muted-foreground text-lg max-w-3xl mx-auto leading-relaxed mt-6">
             Watch the cherished memories of Biral Adarsha High School — from our
             beloved campus to the reunions that brought us back together. These
             videos carry the essence of our shared journey.
@@ -323,7 +364,36 @@ export default function VideoSection() {
             <div className="w-px h-4 bg-forest/10" />
             <div className="flex items-center gap-2">
               <Eye className="w-4 h-4 text-gold" />
-              <span className="text-forest-dark font-semibold">{viewCount.toLocaleString()}+ Views</span>
+              <span className="text-forest-dark font-semibold tabular-nums">
+                <motion.span
+                  key={viewCount}
+                  initial={{ opacity: 0.5, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.1 }}
+                >
+                  {viewCount.toLocaleString()}
+                </motion.span>
+                <AnimatePresence>
+                  {!viewCountDone && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 1, 0] }}
+                      transition={{ duration: 0.8, repeat: Infinity }}
+                    >
+                      …
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                {viewCountDone && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                  >
+                    +
+                  </motion.span>
+                )}
+                {" "}Views
+              </span>
             </div>
           </div>
         </SectionReveal>
