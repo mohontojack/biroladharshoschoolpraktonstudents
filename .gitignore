@@ -83,3 +83,4 @@ search*.json
 download/
 worklog.md
 worklog_append.txt
+.github/
