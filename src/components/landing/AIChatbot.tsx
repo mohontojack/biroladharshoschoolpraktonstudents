@@ -29,10 +29,11 @@ interface RegistrationData {
   location?: string;
   attending?: string;
   guests?: string;
+  [key: string]: string | undefined;
 }
 
 interface ChatbotWidgetProps {
-  onRegistrationComplete?: (data: RegistrationData) => void;
+  onRegistrationComplete?: (data: Record<string, string>) => void;
 }
 
 function generateSessionId(): string {
@@ -112,8 +113,14 @@ export default function ChatbotWidget({ onRegistrationComplete }: ChatbotWidgetP
         }
 
         // Handle complete registration
-        if (data.action === "complete" && data.data && onRegistrationComplete) {
-          onRegistrationComplete(data.data);
+        if (data.action === "complete" && data.data && typeof data.data === "object" && onRegistrationComplete) {
+          const record: Record<string, string> = {};
+          for (const [key, value] of Object.entries(data.data)) {
+            if (typeof value === "string") {
+              record[key] = value;
+            }
+          }
+          onRegistrationComplete(record);
         }
       }
     } catch {

@@ -19,19 +19,6 @@ import AIChatbot from "@/components/landing/AIChatbot";
 import BackToTop from "@/components/landing/BackToTop";
 import FloatingNav from "@/components/landing/FloatingNav";
 
-// Registration data type from chatbot
-interface ChatbotRegistrationData {
-  name?: string;
-  batch?: string;
-  phone?: string;
-  email?: string;
-  profession?: string;
-  location?: string;
-  attending?: string;
-  guests?: string;
-  [key: string]: string | undefined;
-}
-
 // Shared event bus for chatbot → form communication
 type RegistrationDataHandler = ((data: Record<string, string>) => void) | null;
 let registrationDataHandler: RegistrationDataHandler = null;
@@ -60,14 +47,8 @@ export default function Home() {
 
   // When chatbot completes registration, scroll to form and fill it
   const handleChatbotRegistration = useCallback(
-    (data: ChatbotRegistrationData) => {
-      const record: Record<string, string> = {};
-      for (const [key, value] of Object.entries(data)) {
-        if (value !== undefined) {
-          record[key] = value;
-        }
-      }
-      setChatbotData(record);
+    (data: Record<string, string>) => {
+      setChatbotData(data);
       // Scroll to registration section
       setTimeout(() => {
         document
