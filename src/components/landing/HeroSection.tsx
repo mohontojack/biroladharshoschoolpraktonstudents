@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ChevronDown, CalendarHeart, Share2, Users, Heart } from "lucide-react";
+import { ChevronDown, CalendarHeart, Share2, Users, Heart, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function HeroSection() {
@@ -283,12 +283,13 @@ export default function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.3 }}
-          className="flex flex-wrap justify-center gap-8 mt-16"
+          className="flex flex-wrap justify-center gap-6 sm:gap-8 mt-16"
         >
           {[
             { label: "Eid-ul-Azha 2026", sub: "Save the Date", icon: CalendarHeart },
             { label: "Biral Adarsha", sub: "High School Campus", icon: Heart },
             { label: `${regCount}+ Registered`, sub: "Join the Celebration", icon: Users },
+            { label: `${Math.floor(regCount * 2.8)}+ Visitors`, sub: "People viewing now", icon: Eye },
           ].map((item, i) => {
             const Icon = item.icon;
             return (
@@ -299,9 +300,15 @@ export default function HeroSection() {
               >
                 <div className="flex items-center justify-center gap-1.5 mb-1">
                   <Icon className="w-3.5 h-3.5 text-gold/60" />
-                  <p className="text-gold font-semibold text-lg">{item.label}</p>
+                  <p className="text-gold font-semibold text-base sm:text-lg">{item.label}</p>
+                  {i === 3 && (
+                    <span className="relative flex h-2 w-2 ml-0.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                    </span>
+                  )}
                 </div>
-                <p className="text-white/50 text-sm">{item.sub}</p>
+                <p className="text-white/50 text-xs sm:text-sm">{item.sub}</p>
               </motion.div>
             );
           })}

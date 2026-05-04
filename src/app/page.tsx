@@ -1,17 +1,13 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { motion, useScroll, useSpring } from "framer-motion";
 import SplashScreen from "@/components/landing/SplashScreen";
 import HeroSection from "@/components/landing/HeroSection";
-import MemorySection from "@/components/landing/MemorySection";
-import VideoSection from "@/components/landing/VideoSection";
 import MemoriesGallerySection from "@/components/landing/MemoriesGallerySection";
-import PhotoGallerySection from "@/components/landing/PhotoGallerySection";
+import VideoSection from "@/components/landing/VideoSection";
 import TeachersSection from "@/components/landing/TeachersSection";
-import AboutSchoolSection from "@/components/landing/AboutSchoolSection";
 import EventDetailsSection from "@/components/landing/EventDetailsSection";
-import WhyJoinSection from "@/components/landing/WhyJoinSection";
-import AboutUsSection from "@/components/landing/AboutUsSection";
 import RegistrationSection from "@/components/landing/RegistrationSection";
 import Footer from "@/components/landing/Footer";
 import WhatsAppButton from "@/components/landing/WhatsAppButton";
@@ -27,6 +23,18 @@ export function onRegistrationDataFromChatbot(
   handler: (data: Record<string, string>) => void
 ) {
   registrationDataHandler = handler;
+}
+
+function ScrollProgress() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+
+  return (
+    <motion.div
+      className="fixed top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-gold via-gold-light to-gold z-[100] origin-left"
+      style={{ scaleX }}
+    />
+  );
 }
 
 export default function Home() {
@@ -76,15 +84,10 @@ export default function Home() {
 
       <main className={`flex-1 ${!showSplash ? "page-reveal" : "opacity-0"}`}>
         <HeroSection />
-        <MemorySection />
-        <VideoSection />
         <MemoriesGallerySection />
-        <PhotoGallerySection />
+        <VideoSection />
         <TeachersSection />
-        <AboutSchoolSection />
         <EventDetailsSection />
-        <WhyJoinSection />
-        <AboutUsSection />
         <RegistrationSection prefilledData={chatbotData} />
       </main>
       <Footer className={showSplash ? "opacity-0" : ""} />
@@ -92,6 +95,7 @@ export default function Home() {
       {/* Floating Buttons — only after splash */}
       {!showSplash && (
         <>
+          <ScrollProgress />
           <BackToTop />
           <FloatingNav />
           <WhatsAppButton />

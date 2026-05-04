@@ -16,6 +16,7 @@ import {
   Sparkles,
   AlertCircle,
   MessageCircle,
+  Facebook,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -604,6 +605,45 @@ export default function RegistrationSection({ prefilledData }: RegistrationSecti
               Your information is completely safe and confidential
             </p>
           </form>
+        </SectionReveal>
+
+        {/* Join Our Team CTA */}
+        <SectionReveal delay={0.4} className="mt-10">
+          <div className="bg-forest rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 border border-forest/10">
+            <p className="text-white text-sm font-medium text-center sm:text-left">
+              Want to help organize the event?
+            </p>
+            <div className="flex items-center gap-3">
+              <a
+                href="https://wa.me/8801705937212"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors"
+                aria-label="Contact via WhatsApp"
+              >
+                <Phone className="w-3.5 h-3.5" />
+                <span>WhatsApp</span>
+              </a>
+              <a
+                href="https://facebook.com/bahs.dnj"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors"
+                aria-label="Visit Facebook page"
+              >
+                <Facebook className="w-3.5 h-3.5" />
+                <span>Facebook</span>
+              </a>
+              <a
+                href="mailto:mohontobacklinks22@gmail.com"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors"
+                aria-label="Send email"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>Email</span>
+              </a>
+            </div>
+          </div>
         </SectionReveal>
       </div>
     </section>

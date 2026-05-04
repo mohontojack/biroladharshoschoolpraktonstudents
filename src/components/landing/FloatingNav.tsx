@@ -5,13 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Home,
   BookOpen,
+  Film,
   Users,
   Calendar,
-  Heart,
   ClipboardList,
-  ArrowUp,
-  School,
-  Info,
+  ChevronUp,
 } from "lucide-react";
 
 interface NavItem {
@@ -22,14 +20,10 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: "hero", label: "Home", icon: Home },
-  { id: "showcase", label: "Memories", icon: BookOpen },
-  { id: "videos", label: "Videos", icon: Heart },
-  { id: "memories", label: "Gallery", icon: Heart },
+  { id: "memories", label: "Memories", icon: BookOpen },
+  { id: "videos", label: "Videos", icon: Film },
   { id: "teachers", label: "Teachers", icon: Users },
-  { id: "about-school", label: "Our School", icon: School },
   { id: "details", label: "Event", icon: Calendar },
-  { id: "why-join", label: "Why Join", icon: Heart },
-  { id: "about-us", label: "About Us", icon: Info },
   { id: "registration", label: "Register", icon: ClipboardList },
 ];
 
@@ -88,7 +82,7 @@ export default function FloatingNav() {
               className="mb-2 p-1.5 rounded-full bg-forest/5 hover:bg-forest/10 transition-colors group"
               aria-label="Scroll to top"
             >
-              <ArrowUp className="w-3 h-3 text-forest/40 group-hover:text-forest transition-colors" />
+              <ChevronUp className="w-3 h-3 text-forest/40 group-hover:text-forest transition-colors" />
             </button>
             {navItems.map((item) => {
               const Icon = item.icon;

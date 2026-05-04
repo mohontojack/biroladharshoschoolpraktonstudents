@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, MapPin, Users, Sparkles, Heart, Phone, Mail } from "lucide-react";
+import { Calendar, MapPin, Users, Sparkles, Heart, Phone, Mail, Handshake, Clock, Lightbulb } from "lucide-react";
 import SectionReveal from "./SectionReveal";
 
 const eventDetails = [
@@ -148,6 +148,41 @@ export default function EventDetailsSection() {
             * Final date (2nd or 3rd day of Eid-ul-Azha), time, and detailed schedule will be
             confirmed and communicated to all registered attendees
           </p>
+        </SectionReveal>
+
+        {/* Why You Should Attend — compact sub-section */}
+        <SectionReveal delay={0.8} className="pt-12">
+          <div className="text-center mb-8">
+            <h3 className="text-xl sm:text-2xl font-bold text-forest-dark mb-2">
+              Why You Should Attend
+            </h3>
+            <p className="text-muted-foreground text-sm">
+              More than a reunion — it&apos;s a celebration of who we are
+            </p>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-3xl mx-auto">
+            {[
+              { icon: Handshake, text: "Reunite with old friends" },
+              { icon: Clock, text: "Relive school memories" },
+              { icon: Heart, text: "Honor our beloved teachers" },
+              { icon: Lightbulb, text: "Inspire next generation" },
+            ].map((reason, i) => {
+              const ReasonIcon = reason.icon;
+              return (
+                <div
+                  key={i}
+                  className="flex flex-col items-center gap-2.5 bg-cream/60 rounded-xl p-4 border border-forest/5 hover:border-gold/20 transition-all duration-300 hover:shadow-sm"
+                >
+                  <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
+                    <ReasonIcon className="w-5 h-5 text-gold-dark" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-forest-dark text-center leading-snug">
+                    {reason.text}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </SectionReveal>
       </div>
     </section>
